@@ -1,5 +1,5 @@
 import uuid
-from psycopg2.extras import RealDictCursor
+from psycopg2.extras import RealDictCursor, Json
 from typing import Optional, List, Dict, Any
 
 
@@ -87,7 +87,7 @@ class AccountQueries:
                 INSERT INTO accounts (id, name, email, address, tags, account_type)
                 VALUES (%s, %s, %s, %s, %s, 'service_provider')
             """,
-                [account_id, name, email, address, tags or []],
+                [account_id, name, email, Json(address), tags or []],
             )
 
             # Insert into service_providers table
@@ -96,7 +96,7 @@ class AccountQueries:
                 INSERT INTO service_providers (account_id, hourly_rate, availability)
                 VALUES (%s, %s, %s)
             """,
-                [account_id, hourly_rate, availability],
+                [account_id, hourly_rate, Json(availability) if availability else None],
             )
 
             self.db.commit()
@@ -110,6 +110,10 @@ class AccountQueries:
             account_updates = {k: v for k, v in updates.items() if k in ["name", "email", "address", "tags"]}
 
             if account_updates:
+                # Convert address to Json if provided
+                if "address" in account_updates:
+                    account_updates["address"] = Json(account_updates["address"])
+
                 set_clause = ", ".join([f"{k} = %s" for k in account_updates.keys()])
                 values = list(account_updates.values()) + [account_id]
                 cursor.execute(
@@ -125,6 +129,10 @@ class AccountQueries:
             provider_updates = {k: v for k, v in updates.items() if k in ["hourly_rate", "availability"]}
 
             if provider_updates:
+                # Convert availability to Json if provided
+                if "availability" in provider_updates:
+                    provider_updates["availability"] = Json(provider_updates["availability"])
+
                 set_clause = ", ".join([f"{k} = %s" for k in provider_updates.keys()])
                 values = list(provider_updates.values()) + [account_id]
                 cursor.execute(
@@ -160,7 +168,7 @@ class AccountQueries:
                 INSERT INTO accounts (id, name, email, address, tags, account_type)
                 VALUES (%s, %s, %s, %s, %s, 'service_consumer')
             """,
-                [account_id, name, email, address, tags or []],
+                [account_id, name, email, Json(address), tags or []],
             )
 
             # Insert into service_consumers table
@@ -169,7 +177,7 @@ class AccountQueries:
                 INSERT INTO service_consumers (account_id, preferred_budget, service_history)
                 VALUES (%s, %s, %s)
             """,
-                [account_id, preferred_budget, service_history or []],
+                [account_id, preferred_budget, Json(service_history or [])],
             )
 
             self.db.commit()
@@ -183,6 +191,10 @@ class AccountQueries:
             account_updates = {k: v for k, v in updates.items() if k in ["name", "email", "address", "tags"]}
 
             if account_updates:
+                # Convert address to Json if provided
+                if "address" in account_updates:
+                    account_updates["address"] = Json(account_updates["address"])
+
                 set_clause = ", ".join([f"{k} = %s" for k in account_updates.keys()])
                 values = list(account_updates.values()) + [account_id]
                 cursor.execute(
@@ -198,6 +210,10 @@ class AccountQueries:
             consumer_updates = {k: v for k, v in updates.items() if k in ["preferred_budget", "service_history"]}
 
             if consumer_updates:
+                # Convert service_history to Json if provided
+                if "service_history" in consumer_updates:
+                    consumer_updates["service_history"] = Json(consumer_updates["service_history"])
+
                 set_clause = ", ".join([f"{k} = %s" for k in consumer_updates.keys()])
                 values = list(consumer_updates.values()) + [account_id]
                 cursor.execute(
@@ -222,7 +238,7 @@ class AccountQueries:
                     updated_at = CURRENT_TIMESTAMP
                 WHERE account_id = %s
             """,
-                [[service_data], account_id],
+                [Json([service_data]), account_id],
             )
 
             self.db.commit()
