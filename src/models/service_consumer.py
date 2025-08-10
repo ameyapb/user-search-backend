@@ -11,7 +11,7 @@ class ServiceConsumer(Account):
         self,
         name: str,
         email: str,
-        address: Dict[str, str] = None,
+        address: Dict[str, str],
         tags: Set[str] = None,
         preferred_budget: Optional[float] = None,
         service_history: Optional[List[Dict]] = None,
@@ -30,10 +30,12 @@ class ServiceConsumer(Account):
 
     def add_service_to_history(self, service_data: Dict) -> None:
         """Add a service to the history"""
-        if service_data:
-            service_entry = {**service_data, "added_at": datetime.now(timezone.utc).isoformat()}
-            self.service_history.append(service_entry)
-            self.updated_at = datetime.now(timezone.utc)
+        if not service_data or not isinstance(service_data, dict) or not service_data:
+            raise ValueError("Service data must be a non-empty dictionary")
+
+        service_entry = {**service_data, "added_at": datetime.now(timezone.utc).isoformat()}
+        self.service_history.append(service_entry)
+        self.updated_at = datetime.now(timezone.utc)
 
     def to_dict(self) -> Dict:
         """Override parent to include consumer-specific fields"""

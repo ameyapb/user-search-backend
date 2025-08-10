@@ -19,9 +19,12 @@ class ServiceProvider(Account):
         self.hourly_rate = hourly_rate
         self.availability = availability
 
-    def set_hourly_rate(self, rate: float) -> None:
+    def set_hourly_rate(self, rate: Optional[float]) -> None:
         """Set hourly rate"""
-        if rate >= 0:
+        if rate is None:
+            self.hourly_rate = None
+            self.updated_at = datetime.now(timezone.utc)
+        elif rate >= 0:
             self.hourly_rate = rate
             self.updated_at = datetime.now(timezone.utc)
         else:
@@ -39,7 +42,7 @@ class ServiceProvider(Account):
         return data
 
     def __repr__(self) -> str:
-        rate_str = f"${self.hourly_rate}/hr" if self.hourly_rate else "Rate not set"
+        rate_str = f"${self.hourly_rate}/hr" if self.hourly_rate is not None else "Rate not set"
         return f"<ServiceProvider {self.name} - {rate_str}>"
 
     def get_role_specific_info(self) -> Dict:
