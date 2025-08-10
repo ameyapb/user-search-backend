@@ -74,6 +74,7 @@ class Account(ABC):
         """Convert account to dictionary"""
         return {
             "name": self.name,
+            "id": self.id,
             "email": self.email,
             "address": self.address,
             "tags": list(self.tags),  # Convert set to list for JSON serialization
