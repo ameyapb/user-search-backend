@@ -69,13 +69,20 @@ def create_service_provider():
     try:
         data = request.get_json()
 
-        if not data or not all(k in data for k in ["name", "email"]):
-            return jsonify({"error": "Missing required fields", "required": ["name", "email"]}), 400
+        # More comprehensive validation
+        if not data:
+            return jsonify({"error": "No JSON data provided"}), 400
+
+        if not all(k in data for k in ["name", "email", "address"]):
+            return jsonify({"error": "Missing required fields", "required": ["name", "email", "address"]}), 400
+
+        if not isinstance(data["address"], dict):
+            return jsonify({"error": "Address must be a dictionary"}), 400
 
         provider = ServiceProvider(
             name=data["name"],
             email=data["email"],
-            address=data.get("address"),
+            address=data["address"],
             tags=set(data.get("tags", [])),
             hourly_rate=data.get("hourly_rate"),
             availability=data.get("availability"),
@@ -85,6 +92,8 @@ def create_service_provider():
 
         return jsonify({"message": "ServiceProvider created successfully", "data": provider.to_dict()}), 201
 
+    except ValueError as ve:
+        return jsonify({"error": "Validation error", "details": str(ve)}), 400
     except Exception as e:
         return jsonify({"error": "Failed to create ServiceProvider", "details": str(e)}), 500
 
@@ -168,13 +177,19 @@ def create_service_consumer():
     try:
         data = request.get_json()
 
-        if not data or not all(k in data for k in ["name", "email"]):
-            return jsonify({"error": "Missing required fields", "required": ["name", "email"]}), 400
+        if not data:
+            return jsonify({"error": "No JSON data provided"}), 400
+
+        if not all(k in data for k in ["name", "email", "address"]):
+            return jsonify({"error": "Missing required fields", "required": ["name", "email", "address"]}), 400
+
+        if not isinstance(data["address"], dict):
+            return jsonify({"error": "Address must be a dictionary"}), 400
 
         consumer = ServiceConsumer(
             name=data["name"],
             email=data["email"],
-            address=data.get("address"),
+            address=data["address"],
             tags=set(data.get("tags", [])),
             preferred_budget=data.get("preferred_budget"),
             service_history=data.get("service_history", []),
@@ -184,6 +199,8 @@ def create_service_consumer():
 
         return jsonify({"message": "ServiceConsumer created successfully", "data": consumer.to_dict()}), 201
 
+    except ValueError as ve:
+        return jsonify({"error": "Validation error", "details": str(ve)}), 400
     except Exception as e:
         return jsonify({"error": "Failed to create ServiceConsumer", "details": str(e)}), 500
 
