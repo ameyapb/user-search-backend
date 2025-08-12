@@ -5,6 +5,8 @@ from src.db.connection import get_db, close_db
 from dotenv import load_dotenv
 import os
 from src import setup_logging
+from flask_cors import CORS
+
 
 
 def create_app():
@@ -12,6 +14,8 @@ def create_app():
     logger = setup_logging()
 
     app = Flask(__name__)
+
+    CORS(app, origins=["http://localhost:3001"])
 
     # Register API blueprint
     app.register_blueprint(api_bp, url_prefix="/api")
