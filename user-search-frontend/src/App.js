@@ -7,6 +7,7 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedAccount, setSelectedAccount] = useState(null);
+  const [showCreateForm, setShowCreateForm] = useState(null); // 'provider' or 'consumer'
 
   // Fetch all accounts on component mount
   useEffect(() => {
@@ -96,6 +97,65 @@ function App() {
     setSelectedAccount(null);
   };
 
+  const closeCreateForm = () => {
+    setShowCreateForm(null);
+  };
+
+  const handleDelete = async (accountId, accountType, e) => {
+    e.stopPropagation(); // Prevent card click
+
+    if (!window.confirm('Are you sure you want to delete this account?')) {
+      return;
+    }
+
+    try {
+      const endpoint = accountType === 'service_provider'
+        ? `http://localhost:3000/api/v1/providers/${accountId}`
+        : `http://localhost:3000/api/v1/consumers/${accountId}`;
+
+      const response = await fetch(endpoint, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        // Refresh the accounts list
+        fetchAccounts();
+      } else {
+        alert('Failed to delete account');
+      }
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      alert('Error deleting account');
+    }
+  };
+
+  const handleCreateSubmit = async (formData, accountType) => {
+    try {
+      const endpoint = accountType === 'provider'
+        ? 'http://localhost:3000/api/v1/providers'
+        : 'http://localhost:3000/api/v1/consumers';
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        // Refresh the accounts list and close form
+        fetchAccounts();
+        setShowCreateForm(null);
+      } else {
+        alert('Failed to create account');
+      }
+    } catch (error) {
+      console.error('Error creating account:', error);
+      alert('Error creating account');
+    }
+  };
+
   const AccountCard = ({ account }) => {
     const isProvider = account.account_type === 'service_provider';
 
@@ -106,9 +166,18 @@ function App() {
       >
         <div className="card-header">
           <h3 className="account-name">{account.name}</h3>
-          <span className={`account-type ${isProvider ? 'provider-badge' : 'consumer-badge'}`}>
-            {isProvider ? 'Provider' : 'Consumer'}
-          </span>
+          <div className="card-header-right">
+            <span className={`account-type ${isProvider ? 'provider-badge' : 'consumer-badge'}`}>
+              {isProvider ? 'Provider' : 'Consumer'}
+            </span>
+            <button
+              className="delete-button"
+              onClick={(e) => handleDelete(account.id, account.account_type, e)}
+              title="Delete account"
+            >
+              ×
+            </button>
+          </div>
         </div>
 
         <div className="account-details">
@@ -157,6 +226,169 @@ function App() {
             )}
           </div>
         )}
+      </div>
+    );
+  };
+
+  const CreateForm = ({ accountType, onSubmit, onClose }) => {
+    const [formData, setFormData] = useState({
+      name: '',
+      email: '',
+      street: '',
+      city: '',
+      tags: '',
+      ...(accountType === 'provider' ? {
+        hourly_rate: '',
+        availability: ''
+      } : {
+        preferred_budget: ''
+      })
+    });
+
+    const handleInputChange = (e) => {
+      const { name, value } = e.target;
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    };
+
+    const handleSubmit = (e) => {
+      e.preventDefault();
+
+      // Format the data for the API
+      const submitData = {
+        name: formData.name,
+        email: formData.email,
+        address: {
+          street: formData.street,
+          city: formData.city
+        },
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
+      };
+
+      if (accountType === 'provider') {
+        if (formData.hourly_rate) submitData.hourly_rate = parseFloat(formData.hourly_rate);
+        if (formData.availability) submitData.availability = formData.availability;
+      } else {
+        if (formData.preferred_budget) submitData.preferred_budget = parseFloat(formData.preferred_budget);
+      }
+
+      onSubmit(submitData, accountType);
+    };
+
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content create-form" onClick={(e) => e.stopPropagation()}>
+          <button className="close-button" onClick={onClose}>×</button>
+
+          <div className="modal-header">
+            <h2>Add New {accountType === 'provider' ? 'Provider' : 'Consumer'}</h2>
+          </div>
+
+          <form onSubmit={handleSubmit} className="create-form-body">
+            <div className="form-group">
+              <label>Name *</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Email *</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Street</label>
+              <input
+                type="text"
+                name="street"
+                value={formData.street}
+                onChange={handleInputChange}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>City</label>
+              <input
+                type="text"
+                name="city"
+                value={formData.city}
+                onChange={handleInputChange}
+              />
+            </div>
+
+            {accountType === 'provider' && (
+              <>
+                <div className="form-group">
+                  <label>Hourly Rate ($)</label>
+                  <input
+                    type="number"
+                    name="hourly_rate"
+                    value={formData.hourly_rate}
+                    onChange={handleInputChange}
+                    step="0.01"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Availability</label>
+                  <input
+                    type="text"
+                    name="availability"
+                    value={formData.availability}
+                    onChange={handleInputChange}
+                    placeholder="e.g., Mon-Fri 9AM-5PM"
+                  />
+                </div>
+              </>
+            )}
+
+            {accountType === 'consumer' && (
+              <div className="form-group">
+                <label>Preferred Budget ($)</label>
+                <input
+                  type="number"
+                  name="preferred_budget"
+                  value={formData.preferred_budget}
+                  onChange={handleInputChange}
+                  step="0.01"
+                />
+              </div>
+            )}
+
+            <div className="form-group">
+              <label>Tags (comma-separated)</label>
+              <input
+                type="text"
+                name="tags"
+                value={formData.tags}
+                onChange={handleInputChange}
+                placeholder="e.g., plumber, emergency, residential"
+              />
+            </div>
+
+            <div className="form-actions">
+              <button type="button" onClick={onClose} className="cancel-button">
+                Cancel
+              </button>
+              <button type="submit" className="submit-button">
+                Create {accountType === 'provider' ? 'Provider' : 'Consumer'}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     );
   };
@@ -244,6 +476,22 @@ function App() {
         <p className="app-subtitle">Find service providers and consumers</p>
       </header>
 
+      {/* Add Account Buttons */}
+      <div className="add-buttons">
+        <button
+          className="add-button provider-button"
+          onClick={() => setShowCreateForm('provider')}
+        >
+          + Add Provider
+        </button>
+        <button
+          className="add-button consumer-button"
+          onClick={() => setShowCreateForm('consumer')}
+        >
+          + Add Consumer
+        </button>
+      </div>
+
       {/* Search Bar */}
       <div className="search-container">
         <input
@@ -282,6 +530,15 @@ function App() {
       {/* Modal for account details */}
       {selectedAccount && (
         <AccountModal account={selectedAccount} onClose={closeModal} />
+      )}
+
+      {/* Create form modal */}
+      {showCreateForm && (
+        <CreateForm
+          accountType={showCreateForm}
+          onSubmit={handleCreateSubmit}
+          onClose={closeCreateForm}
+        />
       )}
     </div>
   );

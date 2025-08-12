@@ -32,6 +32,48 @@
   font-weight: 300;
 }
 
+/* Add Account Buttons */
+.add-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 0 1rem;
+}
+
+.add-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.provider-button {
+  background-color: #10b981;
+  color: white;
+}
+
+.provider-button:hover {
+  background-color: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.consumer-button {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.consumer-button:hover {
+  background-color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
 /* Search Bar */
 .search-container {
   max-width: 600px;
@@ -110,6 +152,35 @@
   align-items: flex-start;
   margin-bottom: 1rem;
   gap: 1rem;
+}
+
+.card-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.delete-button {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.delete-button:hover {
+  background-color: #dc2626;
+  transform: scale(1.1);
 }
 
 .account-name {
@@ -308,6 +379,78 @@
 .service-item small {
   color: #6b7280;
   font-size: 0.85rem;
+}
+
+/* Create Form */
+.create-form {
+  max-width: 500px;
+}
+
+.create-form-body {
+  padding: 1.5rem 2rem 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
+
+.cancel-button {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #e5e7eb;
+  background-color: white;
+  color: #6b7280;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-button:hover {
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.submit-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background-color: #3b82f6;
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.submit-button:hover {
+  background-color: #2563eb;
 }
 
 /* Responsive Design */
