@@ -64,6 +64,7 @@ class AccountQueries:
         """Delete account by ID (CASCADE will handle related tables)"""
         with self.db.cursor() as cursor:
             cursor.execute("DELETE FROM accounts WHERE id = %s", [account_id])
+            self.db.commit()
             return cursor.rowcount > 0
 
     # ============ SERVICE PROVIDER OPERATIONS ============
